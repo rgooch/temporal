@@ -247,6 +247,11 @@ func startWorkflowHelper(c *cli.Context, shouldPrintProgress bool) {
 	runFn := func() {
 		tcCtx, cancel := newContextForLongPoll(c)
 		defer cancel()
+		fmt.Fprintln(os.Stderr, "HACK: runFn() started")
+		tcCtx = context.WithValue(tcCtx, PropagateKey, &AuthValue{
+			Username: "a-user",
+			Groups: []string{"engineering", "root-team"},
+		})
 		resp, err := serviceClient.StartWorkflowExecution(tcCtx, startRequest)
 
 		if err != nil {
@@ -270,6 +275,7 @@ func startWorkflowHelper(c *cli.Context, shouldPrintProgress bool) {
 		table.Render()
 
 		printWorkflowProgress(c, wid, resp.GetRunId())
+		fmt.Fprintln(os.Stderr, "HACK: runFn() returning")
 	}
 
 	if shouldPrintProgress {

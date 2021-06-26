@@ -28,12 +28,15 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"fmt"
+	"os"
 	"errors"
 	"io/ioutil"
 	"net"
 
 	"github.com/urfave/cli"
 	"go.temporal.io/api/workflowservice/v1"
+	"go.temporal.io/sdk/workflow"
 	sdkclient "go.temporal.io/sdk/client"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -95,6 +98,7 @@ func (b *clientFactory) SDKClient(c *cli.Context, namespace string) sdkclient.Cl
 		b.logger.Fatal("Failed to configure TLS for SDK client", tag.Error(err))
 	}
 
+	fmt.Fprintln(os.Stderr, "HACK: clientFactory.SDKClient()")
 	sdkClient, err := sdkclient.NewClient(sdkclient.Options{
 		HostPort:  hostPort,
 		Namespace: namespace,
@@ -104,6 +108,8 @@ func (b *clientFactory) SDKClient(c *cli.Context, namespace string) sdkclient.Cl
 			TLS:                tlsConfig,
 		},
 		HeadersProvider: headersprovider.GetCurrent(),
+	ContextPropagators:
+		[]workflow.ContextPropagator{NewContextPropagator()},
 	})
 	if err != nil {
 		b.logger.Fatal("Failed to create SDK client", tag.Error(err))
